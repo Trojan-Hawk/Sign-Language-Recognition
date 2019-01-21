@@ -2,21 +2,53 @@
 import cv2
 import numpy as np
 import math
+
 cap = cv2.VideoCapture(0)
-     
+
+# define the default range of skin color in HSV
+lower_skin = np.array([0, 38, 80], dtype=np.uint8)
+upper_skin = np.array([20, 255, 255], dtype=np.uint8)
+
+# Difference of 220 between start and end gives an adequate region of interest
+regionStartX = 250
+regionStartY = 130
+regionEndX = 470
+regionEndY = 350
+
+# *************************************** TESTING ********************************************
+faceCascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+# *************************************** TESTING ********************************************
 while(1):
-        
+
     # try to display data to the user
     try:  
         # get a handle on the display
         ret, frame = cap.read()
         frame = cv2.flip(frame, 1)
         kernel = np.ones((3, 3), np.uint8)
+
+        # *************************************** TESTING ********************************************
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        faces = faceCascade.detectMultiScale(
+            gray,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(30, 30),
+            flags=cv2.CASCADE_SCALE_IMAGE
+        )
+
+        # Draw a rectangle around the faces
+        for (x, y, w, h) in faces:
+            # Define the area of the rectangle and the colour
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+
+        # *************************************** TESTING ********************************************
         
         # define region of interest(Green Box)
-        roi = frame[100:320, 100:320]
+        roi = frame[regionStartX:regionEndX, regionStartY:regionEndY]
 
-        cv2.rectangle(frame, (100, 100), (320, 320), (0, 255, 0), 0)
+        cv2.rectangle(frame, (regionStartY, regionStartX), (regionEndY, regionEndX), (0, 255, 0), 0)
         hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
 
         # define range of skin color in HSV
@@ -33,7 +65,7 @@ while(1):
         mask = cv2.GaussianBlur(mask, (5, 5), 100)
 
         # Output of the visual data input (Camera)
-        print(cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE))
+        # print(cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE))
 
         # find contours
         contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -91,57 +123,14 @@ while(1):
             # draw lines around hand
             cv2.line(roi, start, end, [0, 255, 0], 2)
 
-        defectCount += 1
-        
-        # font style and size variables
-        font = cv2.FONT_HERSHEY_PLAIN
-        fontScale = 2
-
-        # print corresponding gestures which are in their ranges
-        if defectCount == 1:
-            if areacnt < 2000:
-                cv2.putText(frame, 'Place hand(s) in the box', (0, 50), font, fontScale, (0, 0, 255), 3, cv2.LINE_AA)
-            else:
-                if arearatio < 12:
-                    cv2.putText(frame, '0', (0, 50), font, fontScale, (0, 0, 255), 3, cv2.LINE_AA)
-                elif arearatio < 17.5:
-                    cv2.putText(frame, 'Thumbs up!', (0, 50), font, fontScale, (0, 0, 255), 3, cv2.LINE_AA)
-                   
-                else:
-                    cv2.putText(frame, '1', (0, 50), font, fontScale, (0, 0, 255), 3, cv2.LINE_AA)
-                    
-        elif defectCount == 2:
-            cv2.putText(frame, '2', (0, 50), font, fontScale, (0, 0, 255), 3, cv2.LINE_AA)
-            
-        elif defectCount == 3:
-         
-            if arearatio < 27:
-                    cv2.putText(frame, '3', (0, 50), font, fontScale, (0, 0, 255), 3, cv2.LINE_AA)
-            else:
-                    cv2.putText(frame, 'ok', (0, 50), font, fontScale, (0, 0, 255), 3, cv2.LINE_AA)
-                    
-        elif defectCount == 4:
-            cv2.putText(frame, '4', (0, 50), font, fontScale, (0, 0, 255), 3, cv2.LINE_AA)
-            
-        elif defectCount == 5:
-            cv2.putText(frame, '5', (0, 50), font, fontScale, (0, 0, 255), 3, cv2.LINE_AA)
-            
-        elif defectCount == 6:
-            cv2.putText(frame, 'reposition', (0, 50), font, fontScale, (0, 0, 255), 3, cv2.LINE_AA)
-            
-        else:
-            cv2.putText(frame, 'reposition', (10, 50), font, fontScale, (0, 0, 255), 3, cv2.LINE_AA)
-
-        print("Above imgshow")
-
         # display the black/white mask extracted from the area of interest
         cv2.imshow('mask', mask)
         # display the camera input data
         cv2.imshow('frame', frame)
-    except:
+    except():
         print("Cannot access camera or none exists!")
         pass
-        
+
     # If the user has pressed the escape key, exit the loop
     k = cv2.waitKey(5) & 0xFF
     if k == 27:
