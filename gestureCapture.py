@@ -40,8 +40,33 @@ while(1):
 
         # Draw a rectangle around the faces
         for (x, y, w, h) in faces:
-            # Define the area of the rectangle and the colour
+            # Use this region to create a view of the extrapolated face
+            roi = frame[y:y + h, x:x + w]
+            # Show the area of the rectangle (Red Box)
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+            if roi is not None:
+                # convert to HSV (Hue-Saturation-Value)
+                hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+                # display the HSV mask extracted from the area of interest
+                # cv2.imshow('FaceHSV', hsv)
+                # use colour quantization to extract the most common colours
+                Z = roi.reshape((-1, 3))
+                # convert to numpy float32
+                Z = np.float32(Z)
+                # define criteria, number of clusters(K) and apply kmeans() clustering
+                criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+                K = 8
+                ret, label, center = cv2.kmeans(Z, K, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+                # convert back into uint8
+                center = np.uint8(center)
+                # flatten the pixles
+                face1DArray = center[label.flatten()]
+                # restore the original image shape
+                face2DArray = face1DArray.reshape((roi.shape))
+                # destroy the previous window
+                cv2.destroyWindow('Quantization')
+                # display the extracted face
+                cv2.imshow('Quantization', face2DArray)
 
         # *************************************** TESTING ********************************************
         
@@ -127,7 +152,7 @@ while(1):
         cv2.imshow('mask', mask)
         # display the camera input data
         cv2.imshow('frame', frame)
-    except():
+    except:
         print("Cannot access camera or none exists!")
         pass
 
