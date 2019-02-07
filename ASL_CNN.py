@@ -38,12 +38,12 @@ def cnn_model():
 	model.add(Conv2D(64, (5, 5), activation='relu'))
 	# model.add(MaxPooling2D(pool_size=(5, 5), strides=(5, 5), padding='same'))
 	model.add(Flatten())
-	model.add(Dense(128, activation='relu'))
+	# model.add(Dense(128, activation='relu'))
 	model.add(Dropout(0.2))
 	model.add(Dense(num_of_classes, activation='softmax'))
 	# sgd = optimizers.SGD(lr=1e-2)
 	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-	filepath = "cnn_model_keras2.h5"
+	filepath = "cnn_model_29_1_19_2037.h5"
 	checkpoint1 = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 	# checkpoint2 = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
 	callbacks_list = [checkpoint1]
