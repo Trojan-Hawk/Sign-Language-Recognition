@@ -44,7 +44,7 @@ skinToneSamples = []
 # Neural network variables
 K.set_image_dim_ordering('tf')
 # h5 filename constant
-h5_fileName = "ASL_Alphabet_Tests/test10.h5"
+h5_fileName = "ASL_Alphabet_Tests/NN_test1.h5"
 # openCV video capture
 cap = cv2.VideoCapture(0)
 

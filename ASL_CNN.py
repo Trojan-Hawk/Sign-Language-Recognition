@@ -53,46 +53,46 @@ test_images = tf.keras.utils.normalize(test_images, axis=1)
 
 # other variables
 K.set_image_dim_ordering('tf')
-h5_filename = "ASL_Alphabet_Tests/test10.h5"
+h5_filename = "ASL_Alphabet_Tests/NN_test1.h5"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 def cnn_model():
-	num_of_classes = get_num_of_classes()
-	model = Sequential()
-	# model.add(Conv2D(16, (2, 2), input_shape=(image_x, image_y, 1), activation='relu'))
-	# model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='same'))
-	# model.add(Conv2D(64, (5, 5), activation='relu'))
-	# model.add(MaxPooling2D(pool_size=(5, 5), strides=(5, 5), padding='same'))
-	# model.add(Flatten())
-	# model.add(Dense(128, activation='relu'))
-	# model.add(Dropout(0.2))
-	# model.add(Dense(num_of_classes, activation='sigmoid'))
+    num_of_classes = get_num_of_classes()
+    model = Sequential()
+    # model.add(Conv2D(16, (2, 2), input_shape=(image_x, image_y, 1), activation='relu'))
+    # model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='same'))
+    # model.add(Conv2D(64, (5, 5), activation='relu'))
+    # model.add(MaxPooling2D(pool_size=(5, 5), strides=(5, 5), padding='same'))
+    # model.add(Flatten())
+    # model.add(Dense(128, activation='relu'))
+    # model.add(Dropout(0.2))
+    # model.add(Dense(num_of_classes, activation='sigmoid'))
 
-	model.add(Flatten())
-	model.add(Dense(128, activation='relu'))
-	model.add(Dense(128, activation='relu'))
-	model.add(Dense(num_of_classes, activation='softmax'))
+    model.add(Flatten())
+    model.add(Dense(128, activation='relu'))
+    model.add(Dense(128, activation='relu'))
+    model.add(Dense(num_of_classes, activation='softmax'))
 
-	# sgd = optimizers.SGD(lr=1e-2)
-	model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
-	checkpoint1 = ModelCheckpoint(h5_filename, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
-	# checkpoint2 = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
-	callbacks_list = [checkpoint1]
-	# from keras.utils import plot_model
-	# plot_model(model, to_file='model.png', show_shapes=True)
-	return model, callbacks_list
+    # sgd = optimizers.SGD(lr=1e-2)
+    model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
+    checkpoint1 = ModelCheckpoint(h5_filename, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+    # checkpoint2 = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+    callbacks_list = [checkpoint1]
+    # from keras.utils import plot_model
+    # plot_model(model, to_file='model.png', show_shapes=True)
+    return model, callbacks_list
 
 
 def train():
-	# build the model
-	model, callbacks_list = cnn_model()
-	# model.summary()
-	model.fit(train_images, train_labels, validation_data=(test_images, test_labels), epochs=30, batch_size=125, callbacks=callbacks_list)
-	scores = model.evaluate(test_images, test_labels, verbose=0)
-	print("CNN Error: %.2f%%" % (100-scores[1]*100))
-	model.save(h5_filename)
-	return model
+    # build the model
+    model, callbacks_list = cnn_model()
+    # model.summary()
+    model.fit(train_images, train_labels, validation_data=(test_images, test_labels), epochs=30, batch_size=125, callbacks=callbacks_list)
+    scores = model.evaluate(test_images, test_labels, verbose=0)
+    print("CNN Error: %.2f%%" % (100-scores[1]*100))
+    model.save(h5_filename)
+    return model
 
 
 def prediction(imageURL):
