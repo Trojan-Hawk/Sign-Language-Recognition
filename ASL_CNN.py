@@ -17,10 +17,11 @@ import os.path as path
 # file dialog box and selector imports
 import tkinter as tk
 from tkinter import filedialog
+import tensorflow as tf
 
 
 def get_image_size():
-	img = cv2.imread('gestures/1/100.jpg', 0)
+	img = cv2.imread('gestures/0/100.jpg', 0)
 	return img.shape
 
 
@@ -46,25 +47,33 @@ test_images = np.reshape(test_images, (test_images.shape[0], image_x, image_y, 1
 train_labels = np_utils.to_categorical(train_labels)
 test_labels = np_utils.to_categorical(test_labels)
 
+# normalize the training and testing images
+train_images = tf.keras.utils.normalize(train_images, axis=1)
+test_images = tf.keras.utils.normalize(test_images, axis=1)
+
 # other variables
 K.set_image_dim_ordering('tf')
-h5_filename = "test2.h5"
+h5_filename = "ASL_Alphabet_Tests/test10.h5"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 def cnn_model():
 	num_of_classes = get_num_of_classes()
 	model = Sequential()
-	model.add(Conv2D(16, (2, 2), input_shape=(image_x, image_y, 1), activation='relu'))
-	model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='same'))
-	model.add(Conv2D(32, (5, 5), activation='relu'))
-	model.add(MaxPooling2D(pool_size=(5, 5), strides=(5, 5), padding='same'))
-	model.add(Conv2D(64, (5, 5), activation='relu'))
-	model.add(MaxPooling2D(pool_size=(5, 5), strides=(5, 5), padding='same'))
+	# model.add(Conv2D(16, (2, 2), input_shape=(image_x, image_y, 1), activation='relu'))
+	# model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='same'))
+	# model.add(Conv2D(64, (5, 5), activation='relu'))
+	# model.add(MaxPooling2D(pool_size=(5, 5), strides=(5, 5), padding='same'))
+	# model.add(Flatten())
+	# model.add(Dense(128, activation='relu'))
+	# model.add(Dropout(0.2))
+	# model.add(Dense(num_of_classes, activation='sigmoid'))
+
 	model.add(Flatten())
 	model.add(Dense(128, activation='relu'))
-	model.add(Dropout(0.2))
+	model.add(Dense(128, activation='relu'))
 	model.add(Dense(num_of_classes, activation='softmax'))
+
 	# sgd = optimizers.SGD(lr=1e-2)
 	model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
 	checkpoint1 = ModelCheckpoint(h5_filename, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
@@ -78,11 +87,12 @@ def cnn_model():
 def train():
 	# build the model
 	model, callbacks_list = cnn_model()
-	model.summary()
-	model.fit(train_images, train_labels, validation_data=(test_images, test_labels), epochs=5, batch_size=300, callbacks=callbacks_list)
+	# model.summary()
+	model.fit(train_images, train_labels, validation_data=(test_images, test_labels), epochs=30, batch_size=125, callbacks=callbacks_list)
 	scores = model.evaluate(test_images, test_labels, verbose=0)
 	print("CNN Error: %.2f%%" % (100-scores[1]*100))
 	model.save(h5_filename)
+	return model
 
 
 def prediction(imageURL):
@@ -96,16 +106,15 @@ def prediction(imageURL):
 
 
 # check to see if the weights file exists
-if path.isfile(h5_filename):
-	print("Loading pre-compiled Neural Net Weights")
+# if path.isfile(h5_filename):
+#	print("Loading pre-compiled Neural Net Weights")
 	# build the model
-	model, callbacks_list = cnn_model()
-	model.load_weights(h5_filename)
-else:
-	print("Creating Neural Net and saving Weights to file")
-	# train and fit the model
-	# train the model
-	train()
+#	model, callbacks_list = cnn_model()
+#	model.load_weights(h5_filename)
+# else:
+print("Creating Neural Net and saving Weights to file")
+# train and fit the model
+model = train()
 
 # Final evaluation of the model
 scores = model.evaluate(test_images, test_labels, verbose=0)

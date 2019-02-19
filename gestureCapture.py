@@ -124,6 +124,7 @@ def define_skin_tone_range():
     new_upper = np.array((upper_skin[0][0], 255, 255), dtype=np.uint8)
     upper_skin = new_upper
 
+
 while(1):
     # try to display data to the user
     try:
