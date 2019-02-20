@@ -210,7 +210,7 @@ def define_skin_tone_range():
 
 # ---------------------------------------------- User Interface --------------------------------------------------------
 # font style and size variables
-font = cv2.FONT_HERSHEY_PLAIN
+font = cv2.FONT_HERSHEY_SIMPLEX
 fontScale = 2
 
 
@@ -241,9 +241,6 @@ def text_prompt(path, title):
     button.place(relx=.5, rely=1, x=2, y=-10, anchor=S)
     # GUI event loop
     GUI.mainloop()
-
-
-# def prediction_display()
 
 
 # --------------------------------------------------- Main -------------------------------------------------------------
@@ -314,6 +311,10 @@ text_prompt("text_resources/init.txt", "Initialize Facial Recognition") ########
 
 # infinite while loop
 while(1):
+    # prediction variables
+    consecutive = 0
+    currentGuess = ''
+
     # try to display data to the user
     try:
         # if the skin tone range has not been defined yet
@@ -418,12 +419,31 @@ while(1):
                     # draw lines around hand
                     cv2.line(roi, start, end, [0, 255, 0], 2)
 
-                print(defectCount)
-
                 # make a guess
-                displayText = "The sign is: " + prediction(mask)
+                guess = prediction(mask)
+                displayText = "The sign is: " + guess
                 # add the text to the frame
                 cv2.putText(frame, displayText, (0, 50), font, fontScale, (0, 0, 255), 3, cv2.LINE_AA)
+
+                # Storing and displaying the predicted letters
+                # if the current guess is the same as the last
+                if currentGuess == guess:
+                    # increment the consecutive guesses
+                    consecutive += 1
+                # if the current guess is empty
+                elif currentGuess == '':
+                    # reset the consecutive count and the current guess
+                    currentGuess = guess
+                    consecutive = 0
+                else:
+                    currentGuess = guess
+                    consecutive = 0
+
+                # if the same guess has been made 4 consecutive times
+                if consecutive >= 4:
+                    cv2.putText(mask, currentGuess + ": 4 times in a row!", (0, 50), font, fontScale, (0, 0, 255), 3, cv2.LINE_AA)
+                    currentGuess = ''
+                    consecutive = 0
 
                 # display the black/white mask extracted from the area of interest
                 cv2.imshow('mask', mask)
