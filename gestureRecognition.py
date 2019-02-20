@@ -219,20 +219,26 @@ def close_gui(GUI):
     GUI.destroy()
 
 
-def prompt_facial_recognition():
+def text_prompt(path, title):
     # create the gui window
     GUI = Tk()
-    # Open the file
-    instructions = os.open("text_resources/init.txt", os.O_RDWR)
+    # Open the file with the text contents to use
+    instructions = os.open(path, os.O_RDWR)
+    # title
+    GUI.title(title)
     # text display
-    text = Text(GUI, font=font, padx=20, pady=20, width=65, height=12)
+    text = Text(GUI, font=(font, 13), padx=25, pady=25, width=65, height=12, wrap=WORD)
+    # inserting the text
     text.insert(INSERT, os.read(instructions, 510))
+    # prevent the user from editing the text
+    text.config(state=DISABLED)
+    # pack the text
     text.pack()
     # close the file
     os.close(instructions)
     # add a button to the gui window
-    button = Button(GUI, text="Start Facial Recognition", command=lambda: close_gui(GUI))
-    button.place(relx=.5, rely=1, x=2, y=1, anchor=S)
+    button = Button(GUI, text="OK", command=lambda: close_gui(GUI), padx=30, pady=5, bg="cornflower blue")
+    button.place(relx=.5, rely=1, x=2, y=-10, anchor=S)
     # GUI event loop
     GUI.mainloop()
 
@@ -303,8 +309,8 @@ else:
     print("No weights file '" + h5_fileName + "' exists.")
     train()
 
-# prompt the user to start facial recognition
-################# prompt_facial_recognition() ################################
+# prompt the user using the init text file resource
+text_prompt("text_resources/init.txt", "Initialize Facial Recognition") ################################
 
 # infinite while loop
 while(1):
