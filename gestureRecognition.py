@@ -84,7 +84,7 @@ def train():
     # model.summary()
     model.fit(train_images, train_labels, validation_data=(test_images, test_labels), epochs=5, batch_size=300, callbacks=callbacks_list)
     scores = model.evaluate(test_images, test_labels, verbose=0)
-    print("CNN Error: %.2f%%" % (100-scores[1]*100))
+    print("Neural Network Error: %.2f%%" % (100-scores[1]*100))
     model.save(h5_fileName)
 
 
