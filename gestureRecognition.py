@@ -248,6 +248,8 @@ def text_prompt(path, title):
 # The image size which is accepted by the CNN
 image_x, image_y = get_image_size()
 
+print(image_y, image_x)
+
 # testing and training data preparation
 with open("train_images", "rb") as f:
     train_images = np.array(pickle.load(f))
