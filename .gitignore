@@ -47,11 +47,15 @@ test_images
 test_labels
 train_images
 train_labels
+GUIApplication.py
+Server/Server.py
+VideoCapture.py
+facial_recognition.py
 
 # Excluded Dirs #
 /gestures
 /results
 /ASL_Alphabet_Tests
 /text_resources
-/_pychache_
+/__pycache__
 /.idea
