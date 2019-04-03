@@ -19,6 +19,8 @@ from resizeimage import resizeimage
 # GUI elements import
 from tkinter import *
 import tensorflow as tf
+import socket
+import blosc
 
 # Neural network variables
 K.set_image_dim_ordering('tf')
@@ -140,3 +142,43 @@ else:
     train()
 
 # single-threaded socket connection
+# specify the host and port
+HOST = '172.31.33.231'  # Server Address
+PORT = 7777             # Port to listen on (non-privileged ports are > 1023)
+# initialize the socket
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# associate the socket with a specific network interface and port
+s.bind((HOST, PORT))
+
+while(1):
+    # enables the server to accept connections
+    # allows the socket to listen on the specified port
+    s.listen()
+    print("Listening on PORT: 7777")
+    # accept blocks and waits for an incoming connection
+    # this is the socket that will be used to communicate with the client
+    conn, addr = s.accept()
+    with conn:
+        print('Connected by', addr)
+        # loop over blocking calls
+
+        while(1):
+            # receive the frame
+            data = conn.recv(300000)                                                    # RECEIVE
+
+            # decompress the pickled frame
+            # data = zlib.decompress(data)
+            data = blosc.decompress(data)
+            # un-pickle the recieved frame
+            frame = pickle.loads(data)
+
+            # feed the frame into the neural network
+            data = prediction(frame)
+            # encode the response
+            data = data.encode('utf-8')
+            # pickle the encoded response
+            pickled_string = pickle.dumps(data)
+            # compress the pickled encoded response
+            data = blosc.compress(pickled_string, typesize=8, cname='zlib')
+            # return the message
+            conn.sendall(data)                                                          # SEND

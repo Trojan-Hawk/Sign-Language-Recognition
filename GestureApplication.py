@@ -5,6 +5,9 @@ import numpy as np
 # facial recognition script import
 from facial_recognition import facial_recognition as face_rec
 from facial_recognition import define_skin_tone_range as hsv_bounds
+import socket
+import blosc
+import pickle
 
 # canvas size
 HEIGHT = 1000
@@ -31,6 +34,18 @@ global skinToneSamples
 skin_tone_samples = []
 # boolean control
 preforming_facial_recognition = True
+
+# initialize the socket
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# the host address and port to be used
+HOST = '18.216.151.188'     # The server's public IP address
+PORT = 7777                 # The port used by the server
+try:
+    # open the connection
+    s.connect((HOST, PORT))
+except:
+    print("Cannot Connect to server!")
+    pass
 
 
 def capture_current_frame():
@@ -120,8 +135,26 @@ def show_extracted(roi):
         # update the camera panel
         resultPanel.imgtk = photo
         resultPanel.configure(image=photo)
+
+        # get the server prediction and update GUI
+        get_server_prediction(roi)
     except():
         print("GUI Issue: resultPanel")
+
+
+def get_server_prediction(roi):
+    # send the region of interest
+    s.sendall(roi)
+    # get the response(encoded, pickled and compressed)
+    data = s.recv(300000)
+    # decompress
+    data = blosc.decompress(data)
+    # un-pickle
+    data = pickle.loads(data)
+    # decode
+    data = data.decode('utf-8')
+    # update the GUI
+    print(data)
 
 
 def update_H_value_lower(value):
