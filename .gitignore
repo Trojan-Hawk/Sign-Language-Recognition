@@ -53,3 +53,5 @@ train_labels
 /results
 /ASL_Alphabet_Tests
 /text_resources
+/_pychache_
+/.idea
