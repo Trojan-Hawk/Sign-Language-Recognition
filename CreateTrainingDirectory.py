@@ -28,6 +28,10 @@ def split_images_labels(images_labels):
         labels.append(label)
     return images, labels
 
+def normalize_training_data():
+
+    print("Normalized")
+
 
 images_labels = pickle_images_labels()
 images_labels = shuffle(shuffle(shuffle(shuffle(images_labels))))

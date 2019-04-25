@@ -1,26 +1,32 @@
 # Imports
-import cv2, os
+import os
 import numpy as np
-import math
+import cv2
 import pickle
 from keras.models import Sequential
 from keras.layers import Dense
-from keras.layers import Dropout
 from keras.layers import Flatten
-from keras.layers.convolutional import Conv2D
-from keras.layers.convolutional import MaxPooling2D
 from keras.utils import np_utils
 from keras.callbacks import ModelCheckpoint
 from keras import backend as K
 # import to access OS file system
 import os.path as path
-from PIL import Image
-from resizeimage import resizeimage
 # GUI elements import
-from tkinter import *
 import tensorflow as tf
 import socket
 import blosc
+from numpy import array
+from numpy import argmax
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder
+
+# The image size which is accepted by the NN
+image_x = 50
+image_y = 50
+
+# global test and train images
+global train_images
+global test_images
 
 # Neural network variables
 K.set_image_dim_ordering('tf')
@@ -81,24 +87,21 @@ def prediction(test_image):
     result = model.predict(test_image)
     # print("RESULT: ", result)
     inverted = label_encoder.inverse_transform([argmax(result)])
-
     return inverted[0]
 
-# The image size which is accepted by the CNN
-image_x, image_y = get_image_size()
 
-print(image_y, image_x)
+# reading in the normalized testing and training data
+with open("train_images_normalized", "rb") as f:
+    train_images = pickle.load(f)
+with open("train_labels_normalized", "rb") as f:
+    train_labels = pickle.load(f)
 
-# testing and training data preparation
-with open("train_images", "rb") as f:
-    train_images = np.array(pickle.load(f))
+# reading in the data labels
 with open("train_labels", "rb") as f:
     train_labels = np.array(pickle.load(f), dtype=np.int32)
-
-with open("test_images", "rb") as f:
-    test_images = np.array(pickle.load(f))
 with open("test_labels", "rb") as f:
     test_labels = np.array(pickle.load(f), dtype=np.int32)
+
 train_images = np.reshape(train_images, (train_images.shape[0], image_x, image_y, 1))
 test_images = np.reshape(test_images, (test_images.shape[0], image_x, image_y, 1))
 train_labels = np_utils.to_categorical(train_labels)
@@ -107,11 +110,6 @@ test_labels = np_utils.to_categorical(test_labels)
 # normalize the training and testing images
 train_images = tf.keras.utils.normalize(train_images, axis=1)
 test_images = tf.keras.utils.normalize(test_images, axis=1)
-
-from numpy import array
-from numpy import argmax
-from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import OneHotEncoder
 
 # define example
 data = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
@@ -143,7 +141,7 @@ else:
 
 # single-threaded socket connection
 # specify the host and port
-HOST = '172.31.33.231'  # Server Address
+HOST = '172.31.18.143'  # Server Address
 PORT = 7777             # Port to listen on (non-privileged ports are > 1023)
 # initialize the socket
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

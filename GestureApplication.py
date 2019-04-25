@@ -17,6 +17,8 @@ LOW = 0
 HIGH = 255
 # slider length
 LENGTH = 400
+# font style and size variables
+font = cv2.FONT_HERSHEY_SIMPLEX
 
 # Region of interest bounds, 220 between start and end gives an adequate region of interest
 regionStartX = 250
@@ -32,13 +34,22 @@ global lower_hsv, upper_hsv
 # global hsv list
 global skinToneSamples
 skin_tone_samples = []
-# boolean control
+# boolean controls
 preforming_facial_recognition = True
+settings_visible = False
+
+# consecutive prediction global variables
+global last_prediction
+last_prediction = ''
+global counter
+counter = 0
+global MAX_CONSECUTIVE
+MAX_CONSECUTIVE = 10
 
 # initialize the socket
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # the host address and port to be used
-HOST = '18.216.151.188'     # The server's public IP address
+HOST = '18.221.79.199'      # The server's public IP address
 PORT = 7777                 # The port used by the server
 try:
     # open the connection
@@ -177,6 +188,34 @@ def update_V_value_upper(value):
     else:                               upper_hsv[2] = lower_hsv[2]; vVarUpper.set(lower_hsv[2])
 
 
+def is_consecutive(prediction):
+    global counter
+    if prediction == last_prediction:
+        counter = counter+1
+    if counter >= MAX_CONSECUTIVE:
+        counter = 0
+        update_predicted_gui(prediction)
+
+
+def update_predicted_gui(prediction):
+    # allow the gui to be edited
+    outputText.config(state=NORMAL)
+    # inserting the text
+    outputText.insert(INSERT, prediction)
+    # prevent the user from editing the text
+    outputText.config(state=DISABLED)
+    # packing the contents
+    outputLabel.pack()
+
+
+def toggle_settings():
+    global settings_visible
+    settings_visible = not settings_visible
+
+
+
+
+
 # root window for the application GUI
 root = Tk()
 
@@ -247,7 +286,11 @@ scaleVUpper.pack(anchor=CENTER, pady=6)
 outputFrame = Frame(root, bg='#80c1ff')
 outputFrame.place(relwidth=0.4, relheight=0.2, relx=0.05, rely=0.75)
 # label
-outputLabel = Label(outputFrame, text='Output Frame', bg='black', fg='white')
+outputLabel = Label(outputFrame, text='Predictions', bg='black', fg='white')
+# Text area
+outputText = Text('', font=(font, 13), padx=25, pady=25, width=65, height=12, wrap=WORD)
+# prevent the user from editing the text
+outputText.config(state=DISABLED)
 outputLabel.pack()
 
 # call the specified method after 10 milliseconds
