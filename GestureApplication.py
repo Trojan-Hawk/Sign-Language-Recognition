@@ -109,7 +109,7 @@ def show_camera():
         # extract region of interest
         roi = frame[regionStartX:regionEndX, regionStartY:regionEndY]
         # show the extracted image
-        # show_extracted(roi)
+        show_extracted(roi)
 
         # convert the array to an image
         image = Image.fromarray(frame)
