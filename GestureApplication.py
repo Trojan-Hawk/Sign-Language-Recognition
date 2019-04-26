@@ -109,7 +109,7 @@ def show_camera():
         # extract region of interest
         roi = frame[regionStartX:regionEndX, regionStartY:regionEndY]
         # show the extracted image
-        show_extracted(roi)
+        # show_extracted(roi)
 
         # convert the array to an image
         image = Image.fromarray(frame)
@@ -213,9 +213,6 @@ def toggle_settings():
     settings_visible = not settings_visible
 
 
-
-
-
 # root window for the application GUI
 root = Tk()
 
@@ -291,7 +288,14 @@ outputLabel = Label(outputFrame, text='Predictions', bg='black', fg='white')
 outputText = Text('', font=(font, 13), padx=25, pady=25, width=65, height=12, wrap=WORD)
 # prevent the user from editing the text
 outputText.config(state=DISABLED)
+# place text
+outputText.place(relwidth=0.36, relheight=0.14, relx=0.069, rely=0.78)
 outputLabel.pack()
+
+# button which will call the facial recognition function
+button = Button(canvas, justify=CENTER, text="Facial Recognition", command=define_HSV_bounds)
+# pack the button onto the canvas
+button.pack()
 
 # call the specified method after 10 milliseconds
 if preforming_facial_recognition:

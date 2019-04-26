@@ -19,6 +19,9 @@ from numpy import array
 from numpy import argmax
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
+# import thread module
+from _thread import *
+import threading
 
 # The image size which is accepted by the NN
 image_x = 50
@@ -31,12 +34,13 @@ global test_images
 # Neural network variables
 K.set_image_dim_ordering('tf')
 # h5 filename constant
-h5_fileName = "ASL_Alphabet_Tests/NN_test1.h5"
+h5_fileName = "../Saved_Weights/00.31%ErrorRate.h5"
 
 
 # returns the number of classes of gestures
 def get_num_of_classes():
-    return len(os.listdir('gestures/'))
+    # number of letters in the alphabet
+    return 36
 
 
 # Getting the accepted image size values
@@ -54,7 +58,6 @@ def model_dfn():
     model.add(Dense(128, activation='relu'))
     model.add(Dense(128, activation='relu'))
     model.add(Dense(num_of_classes, activation='softmax'))
-    # sgd = optimizers.SGD(lr=1e-2)
     model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
     checkpoint1 = ModelCheckpoint(h5_fileName, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
     # checkpoint2 = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
@@ -90,11 +93,38 @@ def prediction(test_image):
     return inverted[0]
 
 
+def new_threaded_connection(conn, addr):
+    # loop until user disconnects
+    while(1):
+        try:
+            # receive the frame
+            data = conn.recv(300000)  # RECEIVE
+
+            # decompress the pickled frame
+            # data = zlib.decompress(data)
+            data = blosc.decompress(data)
+            # un-pickle the recieved frame
+            frame = pickle.loads(data)
+
+            # feed the frame into the neural network
+            data = prediction(frame)
+            # encode the response
+            data = data.encode('utf-8')
+            # pickle the encoded response
+            pickled_string = pickle.dumps(data)
+            # compress the pickled encoded response
+            data = blosc.compress(pickled_string, typesize=8, cname='zlib')
+            # return the message
+            conn.sendall(data)  # SEND
+        except:
+            print(addr + " has ended the session.")
+
+
 # reading in the normalized testing and training data
 with open("train_images_normalized", "rb") as f:
     train_images = pickle.load(f)
-with open("train_labels_normalized", "rb") as f:
-    train_labels = pickle.load(f)
+with open("test_images_normalized", "rb") as f:
+    test_images = pickle.load(f)
 
 # reading in the data labels
 with open("train_labels", "rb") as f:
@@ -102,14 +132,9 @@ with open("train_labels", "rb") as f:
 with open("test_labels", "rb") as f:
     test_labels = np.array(pickle.load(f), dtype=np.int32)
 
-train_images = np.reshape(train_images, (train_images.shape[0], image_x, image_y, 1))
-test_images = np.reshape(test_images, (test_images.shape[0], image_x, image_y, 1))
+# categorize the labels
 train_labels = np_utils.to_categorical(train_labels)
 test_labels = np_utils.to_categorical(test_labels)
-
-# normalize the training and testing images
-train_images = tf.keras.utils.normalize(train_images, axis=1)
-test_images = tf.keras.utils.normalize(test_images, axis=1)
 
 # define example
 data = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
@@ -158,25 +183,7 @@ while(1):
     conn, addr = s.accept()
     with conn:
         print('Connected by', addr)
-        # loop over blocking calls
+        # start a new thread to handle the connection
+        start_new_thread(new_threaded_connection(conn, addr))
 
-        while(1):
-            # receive the frame
-            data = conn.recv(300000)                                                    # RECEIVE
-
-            # decompress the pickled frame
-            # data = zlib.decompress(data)
-            data = blosc.decompress(data)
-            # un-pickle the recieved frame
-            frame = pickle.loads(data)
-
-            # feed the frame into the neural network
-            data = prediction(frame)
-            # encode the response
-            data = data.encode('utf-8')
-            # pickle the encoded response
-            pickled_string = pickle.dumps(data)
-            # compress the pickled encoded response
-            data = blosc.compress(pickled_string, typesize=8, cname='zlib')
-            # return the message
-            conn.sendall(data)                                                          # SEND
+s.close()
