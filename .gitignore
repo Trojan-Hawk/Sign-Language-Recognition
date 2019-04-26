@@ -50,7 +50,6 @@ train_labels
 GUIApplication.py
 Server/Server.py
 VideoCapture.py
-facial_recognition.py
 
 # Excluded Dirs #
 /gestures
